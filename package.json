@@ -1,0 +1,34 @@
+{
+  "name": "smartschool-mcp-server",
+  "version": "0.0.1",
+  "description": "MCP Server for Smartschool API",
+  "main": "build/mod.js",
+  "type": "module",
+  "bin": {
+    "smartschool-mcp-server": "./build/mod.js"
+  },
+  "scripts": {
+    "build": "tsc && chmod +x build/mod.js",
+    "start": "node build/mod.js",
+    "dev": "tsc-watch --onSuccess \"node build/mod.js\""
+  },
+  "keywords": [
+    "mcp",
+    "smartschool",
+    "claude"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@abrianto/smartschool-kit": "^0.0.11",
+    "@modelcontextprotocol/sdk": "^1.12.1",
+    "dotenv": "^16.5.0",
+    "zod": "^3.25.51"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.57",
+    "ts-node": "^10.9.2",
+    "tsc-watch": "^6.3.1",
+    "typescript": "^5.8.3"
+  }
+}
