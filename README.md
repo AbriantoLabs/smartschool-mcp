@@ -24,7 +24,7 @@ A dynamic Model Context Protocol (MCP) server that provides AI assistants with s
 ```bash
 # Clone the repository
 git clone https://github.com/AbriantoLabs/smartschool-mcp.git
-cd smartschool-mcp-server
+cd smartschool-mcp
 
 # Install dependencies
 npm install
