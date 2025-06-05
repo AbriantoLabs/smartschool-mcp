@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 /**
  * Smartschool domain knowledge and conventions
  */
