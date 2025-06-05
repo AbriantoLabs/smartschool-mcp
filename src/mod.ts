@@ -6,8 +6,8 @@
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { z } from "zod";
 import { SmartschoolClient } from "@abrianto/smartschool-kit";
+import { SCHEMA_REGISTRY, getMethodSchema } from "./schemas.js";
 
 /**
  * @file Dynamic MCP Server for Smartschool API
@@ -470,151 +470,18 @@ Example response: {"2024-09-01": {"am": "|", "pm": "Z"}} means present in mornin
  * Generate smart parameter schema from method name and context
  */
 function generateParameterSchema(methodName: string): Record<string, any> {
-  const baseParams: Record<string, any> = {};
+  // Use the proper Zod schema from our schema registry
+  const schema = getMethodSchema(methodName);
 
-  // Common patterns for parameter inference
-  if (methodName.includes("User") || methodName.includes("Student")) {
-    baseParams.userIdentifier = z.string().describe(`User identifier. Can be:
-• Username (e.g., 'john.doe' for John Doe)
-• Internal number (e.g., '12345') 
-• Student ID
-Note: Usernames typically follow 'firstname.lastname' pattern in lowercase.`);
+  // Convert Zod schema to MCP parameter format
+  const shape = schema.shape;
+  const params: Record<string, any> = {};
+
+  for (const [key, zodSchema] of Object.entries(shape)) {
+    params[key] = zodSchema;
   }
 
-  if (methodName.includes("Class") || methodName.includes("Group")) {
-    if (methodName.startsWith("save") || methodName.startsWith("get")) {
-      if (methodName === "saveClass" || methodName === "saveGroup") {
-        baseParams.name = z
-          .string()
-          .describe("Name of the class/group (e.g., '1A', '2B', 'Chess Club')");
-        baseParams.desc = z.string().describe("Description of the class/group");
-        baseParams.code = z
-          .string()
-          .describe(
-            `Unique code identifier. Examples: ${SMARTSCHOOL_CONVENTIONS.classPatterns.examples.join(", ")}`,
-          );
-        baseParams.parent = z
-          .string()
-          .describe("Parent group/class code (use '0' for root level)");
-        baseParams.untis = z
-          .string()
-          .optional()
-          .describe("Untis timetable identifier");
-      } else {
-        baseParams.code = z
-          .string()
-          .optional()
-          .describe(
-            `Class or group code (${SMARTSCHOOL_CONVENTIONS.classPatterns.explanation})`,
-          );
-      }
-    }
-  }
-
-  if (methodName.includes("Absent")) {
-    if (methodName.includes("ByDate")) {
-      baseParams.date = z
-        .string()
-        .describe("Date in YYYY-MM-DD format (e.g., '2024-12-15')");
-    }
-    if (methodName.includes("schoolYear") || methodName === "getAbsents") {
-      baseParams.schoolYear = z
-        .string()
-        .describe(
-          "School year as starting year (e.g., '2024' for school year 2024-2025)",
-        );
-    }
-  }
-
-  if (methodName === "sendMsg") {
-    baseParams.title = z.string().describe("Message subject/title");
-    baseParams.body = z.string().describe("Message content/body");
-    baseParams.senderIdentifier = z
-      .string()
-      .optional()
-      .describe(
-        "Identifier of message sender (use 'Null' for system messages)",
-      );
-    baseParams.coaccount = z.number().optional()
-      .describe(`Co-account to send to:
-${Object.entries(SMARTSCHOOL_CONVENTIONS.coAccountTypes)
-  .map(([num, desc]) => `• ${num}: ${desc}`)
-  .join("\n")}`);
-    baseParams.copyToLVS = z
-      .boolean()
-      .optional()
-      .describe("Copy to student tracking system (LVS)");
-  }
-
-  if (methodName === "saveUser") {
-    baseParams.username = z
-      .string()
-      .describe(
-        "Username for login (typically 'firstname.lastname', e.g., 'john.doe')",
-      );
-    baseParams.name = z.string().describe("First name");
-    baseParams.surname = z.string().describe("Last name");
-    baseParams.basisrol = z.string().describe(`User role in school:
-${Object.entries(SMARTSCHOOL_CONVENTIONS.userRoles)
-  .map(([role, desc]) => `• '${role}': ${desc}`)
-  .join("\n")}`);
-    baseParams.email = z.string().email().optional().describe("Email address");
-    baseParams.passwd1 = z
-      .string()
-      .optional()
-      .describe("Initial password (user must change on first login)");
-
-    // Add confirmation parameter for destructive operations
-    if (requiresConfirmation(methodName)) {
-      baseParams.confirmDestructiveAction = z
-        .literal(true)
-        .describe(
-          "🔥 REQUIRED: Set to true to confirm this destructive operation",
-        );
-    }
-  }
-
-  if (methodName.includes("Password")) {
-    baseParams.password = z
-      .string()
-      .optional()
-      .describe("New password (must meet complexity requirements)");
-    baseParams.accountType = z.number().optional().describe(`Account type:
-${Object.entries(SMARTSCHOOL_CONVENTIONS.coAccountTypes)
-  .map(([num, desc]) => `• ${num}: ${desc}`)
-  .join("\n")}`);
-  }
-
-  // Add confirmation for critical operations
-  if (
-    methodName.startsWith("del") ||
-    methodName === "clearGroup" ||
-    methodName === "unregisterStudent"
-  ) {
-    baseParams.confirmDestructiveAction = z
-      .literal(true)
-      .describe(
-        "💀 REQUIRED: Set to true to confirm this CRITICAL operation that may permanently delete data",
-      );
-  } else if (requiresConfirmation(methodName)) {
-    baseParams.confirmDestructiveAction = z
-      .literal(true)
-      .describe(
-        "🔥 REQUIRED: Set to true to confirm this destructive operation",
-      );
-  }
-
-  // Add common optional parameters
-  if (methodName.includes("official") || methodName.includes("Date")) {
-    baseParams.officialDate = z
-      .string()
-      .optional()
-      .describe(
-        "Official date for the action (YYYY-MM-DD format). If not provided, may require manual confirmation in Smartschool.",
-      );
-  }
-
-  return baseParams;
+  return params;
 }
 
 /**
@@ -657,6 +524,9 @@ function registerDynamicTools() {
   );
 
   console.error(`🔍 Discovered ${methodNames.length} Smartschool methods`);
+  console.error(
+    `📋 Using ${Object.keys(SCHEMA_REGISTRY).length} predefined schemas`,
+  );
 
   methodNames.forEach((methodName) => {
     const context = (METHOD_CONTEXT as any)[methodName] || {
