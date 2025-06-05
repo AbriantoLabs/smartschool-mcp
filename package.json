@@ -17,8 +17,8 @@
     "smartschool",
     "claude"
   ],
-  "author": "",
-  "license": "ISC",
+  "author": "Maarten Coppens",
+  "license": "MIT",
   "dependencies": {
     "@abrianto/smartschool-kit": "^0.0.11",
     "@modelcontextprotocol/sdk": "^1.12.1",
