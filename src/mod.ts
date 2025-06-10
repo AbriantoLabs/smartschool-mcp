@@ -370,7 +370,35 @@ For new users, username is typically generated as 'firstname.lastname' in lowerc
     description: "Find out which teachers are assigned to which classes",
     useCase: "To see class-teacher assignments and responsibilities",
     category: "Class Information",
-    examples: ["Who teaches class 3A?", "Get all class assignments"],
+    examples: [
+      "Who teaches class 3A?",
+      "Get all class assignments",
+      "List all titular teachers",
+    ],
+    smartschoolContext: `Returns detailed teacher-class assignments with both teacher and class information. Each record shows:
+
+**Teacher Info:**
+- Personal details: name, first name, username
+- System IDs: internal number, staff number (stamboeknummer)
+- Schedule code: koppelingsveldschoolagenda (for timetable integration)
+
+**Class Info:** 
+- Class details: klasnaam (e.g., "1A1", "6WEWE"), klasomschrijving (description)
+- Administrative: klasid (internal class ID), instellingsnummer (institute number)
+- Administrative group: administratievegroep (for official classes)
+
+**Key Fields:**
+- 'isOfficial': true = official/formal class, false = informal group
+- Multiple teachers can be assigned to the same class (co-teaching)
+- Some fields may be null for informal groups (instellingsnummer, administratievegroep)
+
+**Parameter:**
+- getAllOwners: true = get all assigned teachers, false = only primary teacher
+
+**Belgian Context:**
+- "Klas" = Class, "Klasgroep" = Class group
+- Class codes follow Belgian patterns: "1A1" (grade 1, section A, group 1), "7KZ" (7th year specialization)
+- stamboeknummer "NULL" string indicates no staff number assigned`,
   },
   delClass: {
     description: "Remove a class or group from the system",
@@ -396,7 +424,9 @@ ${Object.entries(SMARTSCHOOL_CONVENTIONS.coAccountTypes)
   .map(([num, desc]) => `• ${num}: ${desc}`)
   .join("\n")}
 
-Use coaccount=0 for main account (student/teacher), coaccount=1 for first parent, etc.`,
+Use coaccount=0 for main account (student/teacher), coaccount=1 for first parent, etc.
+
+Only HTML is accepted to make a layout for the message body.`,
   },
 
   // Attendance & Absences

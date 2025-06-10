@@ -1,11 +1,11 @@
 {
-  "name": "smartschool-mcp-server",
+  "name": "@abrianto/smartschool-mcp",
   "version": "0.0.1",
   "description": "MCP Server for Smartschool API",
   "main": "build/mod.js",
   "type": "module",
   "bin": {
-    "smartschool-mcp-server": "./build/mod.js"
+    "smartschool-mcp": "./build/mod.js"
   },
   "scripts": {
     "build": "tsc && chmod +x build/mod.js",
