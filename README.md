@@ -47,7 +47,7 @@ export ALLOW_DESTRUCTIVE=false          # Enable destructive operations
 export REQUIRE_CONFIRMATION=true        # Require confirmation for risky operations
 ```
 
-### Running the Server
+### Running the Server manually
 
 ```bash
 # Direct execution
@@ -62,6 +62,25 @@ npm start
 ### Claude Desktop
 
 Add to your `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "smartschool": {
+      "command": "npx",
+      "args": ["-y", "@abrianto/smartschool-mcp"],
+      "env": {
+        "SMARTSCHOOL_API_ENDPOINT": "https://your-school.smartschool.be/Webservices/V3",
+        "SMARTSCHOOL_ACCESS_CODE": "your-access-code",
+        "ALLOW_DESTRUCTIVE": "false",
+        "REQUIRE_CONFIRMATION": "true"
+      }
+    }
+  }
+}
+```
+
+or manually:
 
 ```json
 {
